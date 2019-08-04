@@ -6,6 +6,7 @@ import shutil
 import os
 import os.path
 import ast
+import sys
 
 from datetime import datetime
 
@@ -18,6 +19,8 @@ try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:    
     exit("This script requires the PIL module.\nInstall with pip install Pillow")
+
+baseDirectory=os.path.dirname(os.path.realpath(__file__))
 
 def compress_image(filename):    
     tinify.key = "YOUR_API_KEY"
@@ -43,7 +46,7 @@ def jpgToPng(filename,directory):
     if not filename.lower().endswith(".png"):
         image=Image.open(filename,"r")
         filename=filename.replace(".jpg",".png")
-        image.save(directory+"\\"+filename,"png")
+        image.save(baseDirectory+"\\"+directory+"\\"+filename,"png")
     else:
         shutil.copy(filename,directory);  
 
@@ -54,7 +57,7 @@ def copyJpg(filename,directory):
         image=Image.open(filename,"r")
         image=image.convert("RGB")
         filename=filename.replace(".png",".jpg")
-        image.save("..\\"+directory+"\\"+filename,"JPEG")
+        image.save(baseDirectory+"\\"+directory+"\\"+filename,"JPEG")
                      
     
 
@@ -112,13 +115,16 @@ def watermark_image_with_text(image,filename, text,color):
 
 def main():
     parser = argparse.ArgumentParser(description='Automates basic image manipulation.')
-    parser.add_argument('directory', nargs='?', default='.', help='Directorio con las imagenes que se desean procesar')
+    parser.add_argument('-d','--directory', nargs='?', default='.', help='Directorio con las imagenes que se desean procesar')
     parser.add_argument('-c', '--color',default='(239,239,239,128)', type=ast.literal_eval, help="Color seleccionado para el texto, este debe ser ingresado asi: (R,G,B,A), donde R,G,B son números del 0 al 255 y A es un numero de 0 a 1")
     parser.add_argument('-t', '--text', help="Texto para la Marca de Agua")
     parser.add_argument('-i', '--image-overlay', help="Imagen png transparent para insertar en la esquina superior derecha de todas las imagenes")
    
     args = parser.parse_args()
-    
+    if len(sys.argv) <=1:
+        print("Modo de uso:\npython marker.py -d <Directorio de imagenes> -i <Logo para agregar en esquina derecha superior> -t <Texto para marca de agua>\n")
+        exit(1)
+
     shutil.copytree(os.getcwd(),'directory_backup_{1}'.format(args.directory, datetime.now().isoformat()).replace(':', '_'))
     directoryPng="png-files"
     directoryJpg="jpg-files"
@@ -145,7 +151,7 @@ def imageFileOperation(args,directoryCopy,directoryJpgCopy):
         if filename.lower().endswith('.png') or filename.lower().endswith('.jpg'):
            jpgToPng(filename,directoryCopy)
             
-    os.chdir(directoryCopy)
+    os.chdir(baseDirectory+"\\"+directoryCopy)
 
     for filename in os.listdir():
         
